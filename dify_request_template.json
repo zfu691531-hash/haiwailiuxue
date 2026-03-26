@@ -1,0 +1,99 @@
+{
+  "_comment": "Dify HTTP节点请求体模板 - 复制到HTTP节点的Body中",
+  "template_full": {
+    "name": "{{customer_name}}",
+    "customer_age": {{customer_age}},
+    "customer_gender": "{{customer_gender}}",
+    "customer_fund": "{{customer_fund}}",
+    "customer_address": "{{customer_address}}",
+    "raw_data": "{{raw_data}}",
+    "is_target": {{is_target}},
+    "judge_reason": "{{judge_reason}}"
+  },
+  "template_minimal": {
+    "name": "{{customer_name}}",
+    "customer_age": 0,
+    "customer_gender": "",
+    "customer_fund": "",
+    "customer_address": "",
+    "raw_data": "",
+    "is_target": 3,
+    "judge_reason": ""
+  },
+  "example_complete": {
+    "name": "张三",
+    "customer_age": 35,
+    "customer_gender": "男",
+    "customer_fund": "500万",
+    "customer_address": "北京市朝阳区",
+    "raw_data": "{\"source\": \"dify_workflow\", \"timestamp\": \"2026-03-26\"}",
+    "is_target": 1,
+    "judge_reason": "符合目标客户标准，资金充足，有明确投资意向"
+  },
+  "example_potential": {
+    "name": "李四",
+    "customer_age": 28,
+    "customer_gender": "女",
+    "customer_fund": "100万",
+    "customer_address": "上海市浦东新区",
+    "raw_data": "{\"source\": \"dify_workflow\", \"timestamp\": \"2026-03-26\"}",
+    "is_target": 2,
+    "judge_reason": "潜在客户，有一定资金实力，有发展空间"
+  },
+  "example_not_target": {
+    "name": "王五",
+    "customer_age": 45,
+    "customer_gender": "男",
+    "customer_fund": "20万",
+    "customer_address": "广州市天河区",
+    "raw_data": "{\"source\": \"dify_workflow\", \"timestamp\": \"2026-03-26\"}",
+    "is_target": 0,
+    "judge_reason": "资金不足，不符合当前业务目标"
+  },
+  "example_insufficient": {
+    "name": "赵六",
+    "customer_age": 0,
+    "customer_gender": "",
+    "customer_fund": "",
+    "customer_address": "",
+    "raw_data": "{\"source\": \"dify_workflow\", \"timestamp\": \"2026-03-26\"}",
+    "is_target": 3,
+    "judge_reason": "信息不足，无法准确判断"
+  },
+  "dify_variable_mapping": {
+    "description": "将Dify工作流中的变量映射到以下字段",
+    "name": "{{#Start.customer_name#}}",
+    "customer_age": "{{#Start.age#}}",
+    "customer_gender": "{{#Start.gender#}}",
+    "customer_fund": "{{#LLM.fund_analysis#}}",
+    "customer_address": "{{#Start.address#}}",
+    "raw_data": "{{#Code.json_string#}}",
+    "is_target": "{{#Code.target_code#}}",
+    "judge_reason": "{{#LLM.judge_reason#}}"
+  },
+  "field_types": {
+    "name": "string (必填)",
+    "customer_age": "integer (可选, 0-120)",
+    "customer_gender": "string (可选)",
+    "customer_fund": "string (可选)",
+    "customer_address": "string (可选)",
+    "raw_data": "string (可选, JSON格式)",
+    "is_target": "integer (可选, 0/1/2/3)",
+    "judge_reason": "string (可选)"
+  },
+  "is_target_values": {
+    "1": "符合目标客户",
+    "2": "潜在客户",
+    "0": "非目标客户",
+    "3": "信息不足"
+  },
+  "headers": {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  },
+  "url": {
+    "local": "http://localhost:8000/api/save_customer_judge",
+    "lan": "http://192.168.x.x:8000/api/save_customer_judge",
+    "production": "http://your-server-ip:8000/api/save_customer_judge"
+  }
+}
