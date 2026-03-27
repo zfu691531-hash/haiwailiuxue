@@ -30,6 +30,24 @@ CREATE TABLE customer_info (
     INDEX idx_created_at (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客户信息表';
 
+-- 创建潜在客户表
+DROP TABLE IF EXISTS potential_customers;
+
+CREATE TABLE potential_customers (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    `customer_name` VARCHAR(100) NOT NULL COMMENT '客户姓名',
+    `customer_age` INT DEFAULT 0 COMMENT '客户年龄',
+    `customer_gender` VARCHAR(10) DEFAULT '' COMMENT '客户性别',
+    `customer_fund` VARCHAR(500) DEFAULT '' COMMENT '客户资金情况',
+    `customer_address` VARCHAR(500) DEFAULT '' COMMENT '客户地址',
+    `follow_employee_id` VARCHAR(50) DEFAULT NULL COMMENT '跟进员工ID',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_customer_name (`customer_name`),
+    INDEX idx_follow_employee_id (`follow_employee_id`),
+    INDEX idx_created_at (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='潜在客户表';
+
 -- 插入测试数据（可选）
 -- INSERT INTO customer_info (name, creator, customer_age, customer_gender, customer_fund, customer_address, source, raw_data, is_target, judge_reason)
 -- VALUES 

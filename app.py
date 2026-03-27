@@ -1,6 +1,5 @@
-"""主入口文件 - 启动FastAPI应用"""
+"""FastAPI应用主入口"""
 
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -20,17 +19,19 @@ app.add_middleware(
     allow_headers=["*"],  # 允许所有请求头
 )
 
-# 导入所有路由
+# 导入路由（延迟导入避免循环依赖）
 from routers.employee_router import router as employee_router
 from routers.email_router import router as email_router
 from routers.customer_router import router as customer_router
+from routers.report_router import router as report_router
 
-# 注册所有路由到主应用
-app.include_router(employee_router)      # 员工管理接口
-app.include_router(email_router)         # 邮件发送接口
-app.include_router(customer_router)      # 客户管理接口
+# 注册路由
+app.include_router(employee_router)
+app.include_router(email_router)
+app.include_router(customer_router)
+app.include_router(report_router)  # Dify兼容的日报接口
 
-
+# 健康检查接口
 @app.get("/", summary="健康检查", description="检查服务是否正常运行")
 async def root():
     """健康检查接口"""
@@ -57,13 +58,3 @@ async def health():
             "version": "2.0.0"
         }
     }
-
-
-if __name__ == '__main__':
-    uvicorn.run(
-        app,
-        host='0.0.0.0',
-        port=8000,
-        log_level="info",
-        reload=False  # 生产环境设为False，开发环境可设为True以支持热重载
-    )
