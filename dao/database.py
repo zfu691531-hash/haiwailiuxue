@@ -67,6 +67,52 @@ class CustomerDAO:
 
         return customer_id
 
+    def insert_potential_customer(self, customer_name: str, customer_age: int = None,
+                              customer_gender: str = "未知", customer_fund: str = None,
+                              customer_address: str = None, intention_level: str = "未知",
+                              intention_product: str = None, follow_employee_id: int = None,
+                              status: str = "初接触", source: str = "employee",
+                              remark: str = None) -> int:
+        """
+        插入意向客户信息
+
+        Args:
+            customer_name: 客户姓名
+            customer_age: 客户年龄
+            customer_gender: 客户性别
+            customer_fund: 客户资金
+            customer_address: 客户地址
+            intention_level: 意向等级
+            intention_product: 意向产品
+            follow_employee_id: 跟进员工ID
+            status: 客户状态
+            source: 客户来源
+            remark: 备注信息
+
+        Returns:
+            插入记录的ID
+        """
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        sql = """
+        INSERT INTO potential_customers
+        (customer_name, customer_age, customer_gender, customer_fund,
+         customer_address, intention_level, intention_product,
+         follow_employee_id, status, source, remark)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        cursor.execute(sql, (customer_name, customer_age, customer_gender, customer_fund,
+                           customer_address, intention_level, intention_product,
+                           follow_employee_id, status, source, remark))
+        connection.commit()
+
+        customer_id = cursor.lastrowid
+        cursor.close()
+
+        return customer_id
+
 
 class EmployeeDAO:
     """员工数据访问对象"""
@@ -305,6 +351,52 @@ class EmployeeDAO:
 
         cursor.execute(sql, (name, customer_age, customer_gender, customer_fund,
                             customer_address, follow_employee_id))
+        connection.commit()
+
+        customer_id = cursor.lastrowid
+        cursor.close()
+
+        return customer_id
+
+    def insert_potential_customer(self, customer_name: str, customer_age: int = None,
+                              customer_gender: str = "未知", customer_fund: str = None,
+                              customer_address: str = None, intention_level: str = "未知",
+                              intention_product: str = None, follow_employee_id: int = None,
+                              status: str = "初接触", source: str = "employee",
+                              remark: str = None) -> int:
+        """
+        插入意向客户信息
+
+        Args:
+            customer_name: 客户姓名
+            customer_age: 客户年龄
+            customer_gender: 客户性别
+            customer_fund: 客户资金
+            customer_address: 客户地址
+            intention_level: 意向等级
+            intention_product: 意向产品
+            follow_employee_id: 跟进员工ID
+            status: 客户状态
+            source: 客户来源
+            remark: 备注信息
+
+        Returns:
+            插入记录的ID
+        """
+        connection = self.get_connection()
+        cursor = connection.cursor()
+
+        sql = """
+        INSERT INTO potential_customers
+        (customer_name, customer_age, customer_gender, customer_fund,
+         customer_address, intention_level, intention_product,
+         follow_employee_id, status, source, remark)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        cursor.execute(sql, (customer_name, customer_age, customer_gender, customer_fund,
+                           customer_address, intention_level, intention_product,
+                           follow_employee_id, status, source, remark))
         connection.commit()
 
         customer_id = cursor.lastrowid

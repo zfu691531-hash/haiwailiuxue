@@ -105,14 +105,18 @@ class DailyReportRequest(BaseModel):
 
 class PotentialCustomerRequest(BaseModel):
     """意向客户创建请求模型"""
-    customer_name: str = Field(..., description="客户姓名", min_length=1, max_length=100)
-    customer_age: int = Field(..., description="客户年龄", ge=0, le=120)
-    customer_gender: str = Field(..., description="客户性别", max_length=10)
-    customer_address: str = Field(default="", description="客户地址", max_length=500)
-    customer_fund: str = Field(default="", description="客户资金情况", max_length=500)
-    follow_employee_id: str = Field(..., description="跟进员工ID", min_length=1, max_length=50)
-    raw_data: Optional[str] = Field(default=None, description="原始JSON数据", max_length=5000)
-    
+    customer_name: str = Field(..., description="客户姓名", min_length=1, max_length=50)
+    customer_age: int = Field(default=None, description="客户年龄", ge=0, le=120)
+    customer_gender: str = Field(default="未知", description="客户性别", max_length=10)
+    customer_address: str = Field(default=None, description="客户地址", max_length=255)
+    customer_fund: str = Field(default=None, description="客户资金情况", max_length=100)
+    intention_level: str = Field(default="未知", description="意向等级（高/中/低）", max_length=20)
+    intention_product: str = Field(default=None, description="意向产品", max_length=200)
+    follow_employee_id: int = Field(..., description="跟进员工ID", ge=1)
+    status: str = Field(default="初接触", description="客户状态", max_length=20)
+    source: str = Field(default="employee", description="客户来源", max_length=50)
+    remark: str = Field(default=None, description="备注信息")
+
     @field_validator('customer_name')
     @classmethod
     def customer_name_not_empty(cls, v: str) -> str:
@@ -120,15 +124,7 @@ class PotentialCustomerRequest(BaseModel):
         if not v or v.strip() == '':
             raise ValueError('客户姓名不能为空')
         return v.strip()
-    
-    @field_validator('follow_employee_id')
-    @classmethod
-    def follow_employee_id_not_empty(cls, v: str) -> str:
-        """验证跟进员工ID不能为空"""
-        if not v or v.strip() == '':
-            raise ValueError('跟进员工ID不能为空')
-        return v.strip()
-    
+
     class Config:
         """Pydantic模型配置"""
         json_schema_extra = {
@@ -138,7 +134,12 @@ class PotentialCustomerRequest(BaseModel):
                 "customer_gender": "男",
                 "customer_address": "上海市浦东新区",
                 "customer_fund": "300万",
-                "follow_employee_id": "E001"
+                "intention_level": "高",
+                "intention_product": "留学美国",
+                "follow_employee_id": 1001,
+                "status": "初接触",
+                "source": "employee",
+                "remark": "有强烈留学意向"
             }
         }
 

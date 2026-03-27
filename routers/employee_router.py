@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, status
 from typing import Optional
-from models.schemas import DailyReportRequest, APIResponse
+from models.schemas import DailyReportRequest, PotentialCustomerRequest, APIResponse
 from service.employee_service import EmployeeService
 
 # 创建路由
@@ -57,6 +57,82 @@ async def create_daily_report(request: DailyReportRequest):
             data=result['data']
         )
         
+    except ValueError as ve:
+        # 参数验证异常
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f'参数验证失败：{str(ve)}'
+        )
+    except HTTPException:
+        # 重新抛出HTTP异常
+        raise
+    except Exception as e:
+        # 其他异常
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'服务器内部错误：{str(e)}'
+        )
+
+
+@router.post(
+    "/potential/customer/create",
+    response_model=APIResponse,
+    summary="员工创建意向客户",
+    description="员工创建意向客户，包含客户基本信息、意向等级、意向产品等"
+)
+async def create_potential_customer(request: PotentialCustomerRequest):
+    """
+    员工创建意向客户接口
+
+    Args:
+        request: 意向客户创建请求数据
+        - customer_name: 客户姓名（必填）
+        - customer_age: 客户年龄（选填）
+        - customer_gender: 客户性别（选填，默认"未知"）
+        - customer_address: 客户地址（选填）
+        - customer_fund: 客户资金情况（选填）
+        - intention_level: 意向等级（选填，默认"未知"）
+        - intention_product: 意向产品（选填）
+        - follow_employee_id: 跟进员工ID（必填）
+        - status: 客户状态（选填，默认"初接触"）
+        - source: 客户来源（选填，默认"employee"）
+        - remark: 备注信息（选填）
+
+    Returns:
+        APIResponse: 标准格式的响应结果
+
+    Raises:
+        HTTPException: 处理异常时返回错误
+    """
+    try:
+        # 调用服务层处理业务逻辑
+        result = employee_service.create_potential_customer(
+            customer_name=request.customer_name,
+            customer_age=request.customer_age,
+            customer_gender=request.customer_gender,
+            customer_address=request.customer_address,
+            customer_fund=request.customer_fund,
+            intention_level=request.intention_level,
+            intention_product=request.intention_product,
+            follow_employee_id=request.follow_employee_id,
+            status=request.status,
+            source=request.source,
+            remark=request.remark
+        )
+
+        # 如果处理失败，返回错误
+        if result['code'] != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=result['msg']
+            )
+
+        return APIResponse(
+            code=result['code'],
+            msg=result['msg'],
+            data=result['data']
+        )
+
     except ValueError as ve:
         # 参数验证异常
         raise HTTPException(

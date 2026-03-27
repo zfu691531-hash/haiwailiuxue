@@ -151,22 +151,28 @@ class EmployeeService:
                 'data': None
             }
     
-    def create_potential_customer(self, customer_name: str, customer_age: int,
-                                  customer_gender: str, customer_address: str,
-                                  customer_fund: str, follow_employee_id: str,
-                                  raw_data: str = None) -> Dict[str, Any]:
+    def create_potential_customer(self, customer_name: str, customer_age: int = None,
+                                  customer_gender: str = "未知", customer_address: str = None,
+                                  customer_fund: str = None, intention_level: str = "未知",
+                                  intention_product: str = None, follow_employee_id: int = None,
+                                  status: str = "初接触", source: str = "employee",
+                                  remark: str = None) -> Dict[str, Any]:
         """
-        创建潜在客户
-        
+        创建意向客户
+
         Args:
             customer_name: 客户姓名
             customer_age: 客户年龄
             customer_gender: 客户性别
             customer_address: 客户地址
             customer_fund: 客户资金情况
+            intention_level: 意向等级
+            intention_product: 意向产品
             follow_employee_id: 跟进员工ID
-            raw_data: 原始JSON数据
-            
+            status: 客户状态
+            source: 客户来源
+            remark: 备注信息
+
         Returns:
             包含处理结果的字典（code, msg, data）
         """
@@ -178,43 +184,37 @@ class EmployeeService:
                     'msg': f'跟进员工 ID {follow_employee_id} 不存在',
                     'data': None
                 }
-            
+
             # 插入客户信息
-            customer_id = self.dao.insert_customer_with_follow(
-                name=customer_name,
-                creator=follow_employee_id,
+            customer_id = self.dao.insert_potential_customer(
+                customer_name=customer_name,
                 customer_age=customer_age,
                 customer_gender=customer_gender,
                 customer_fund=customer_fund,
                 customer_address=customer_address,
-                source='employee_potential',
-                raw_data=raw_data or str({
-                    'customer_name': customer_name,
-                    'customer_age': customer_age,
-                    'customer_gender': customer_gender,
-                    'customer_address': customer_address,
-                    'customer_fund': customer_fund,
-                    'follow_employee_id': follow_employee_id
-                }),
-                is_target=2,  # 潜在客户
-                judge_reason='员工推荐的潜在客户',
-                follow_employee_id=follow_employee_id
+                intention_level=intention_level,
+                intention_product=intention_product,
+                follow_employee_id=follow_employee_id,
+                status=status,
+                source=source,
+                remark=remark
             )
-            
+
             return {
                 'code': 200,
-                'msg': f'潜在客户创建成功，客户ID: {customer_id}',
+                'msg': f'意向客户创建成功，客户ID: {customer_id}',
                 'data': {
                     'customer_id': customer_id,
                     'customer_name': customer_name,
-                    'follow_employee_id': follow_employee_id
+                    'follow_employee_id': follow_employee_id,
+                    'status': status
                 }
             }
-            
+
         except Exception as e:
             return {
                 'code': 500,
-                'msg': f'创建潜在客户失败：{str(e)}',
+                'msg': f'创建意向客户失败：{str(e)}',
                 'data': None
             }
     
