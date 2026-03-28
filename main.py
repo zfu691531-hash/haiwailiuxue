@@ -24,11 +24,13 @@ app.add_middleware(
 from routers.employee_router import router as employee_router
 from routers.email_router import router as email_router
 from routers.customer_router import router as customer_router
+from routers.sql import router as sql_router
 
 # 注册所有路由到主应用
 app.include_router(employee_router)      # 员工管理接口
 app.include_router(email_router)         # 邮件发送接口
 app.include_router(customer_router)      # 客户管理接口
+app.include_router(sql_router)           # SQL执行接口
 
 
 @app.get("/", summary="健康检查", description="检查服务是否正常运行")

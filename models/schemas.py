@@ -61,7 +61,6 @@ class CustomerJudgeRequest(BaseModel):
 class DailyReportRequest(BaseModel):
     """日报提交请求模型（符合Dify HTTP节点）"""
     employee_id: int = Field(..., description="员工ID", ge=1)
-    name: str = Field(..., description="日报标题", min_length=1, max_length=100)
     report_date: str = Field(..., description="日报日期 (YYYY-MM-DD)", min_length=10, max_length=10)
     content: str = Field(..., description="今日工作内容", min_length=1, max_length=5000)
     achievements: str = Field(default="", description="工作成果", max_length=2000)
@@ -69,15 +68,9 @@ class DailyReportRequest(BaseModel):
     problems: str = Field(default="", description="遇到的问题", max_length=2000)
     is_pushed: int = Field(default=0, description="是否已推送：0=未推送，1=已推送")
     push_time: Optional[str] = Field(default=None, description="推送时间 (YYYY-MM-DD HH:MM:SS)")
-    
-    @field_validator('name')
-    @classmethod
-    def title_not_empty(cls, v: str) -> str:
-        """验证日报标题不能为空"""
-        if not v or v.strip() == '':
-            raise ValueError('日报标题不能为空')
-        return v.strip()
-    
+    department_id: Optional[int] = Field(default=None, description="部门ID（可选）")
+    department_name: Optional[str] = Field(default=None, description="部门名称（可选）", max_length=100)
+
     @field_validator('content')
     @classmethod
     def content_not_empty(cls, v: str) -> str:
@@ -85,20 +78,50 @@ class DailyReportRequest(BaseModel):
         if not v or v.strip() == '':
             raise ValueError('日报内容不能为空')
         return v.strip()
-    
+
     class Config:
         """Pydantic模型配置"""
         json_schema_extra = {
             "example": {
                 "employee_id": 1001,
-                "name": "2025-03-26日报",
                 "report_date": "2025-03-26",
                 "content": "完成接口开发",
                 "achievements": "跑通日报提交接口",
                 "plan_tomorrow": "优化权限控制",
                 "problems": "无",
                 "is_pushed": 0,
-                "push_time": None
+                "push_time": None,
+                "department_id": 1,
+                "department_name": "技术部"
+            }
+        }
+
+
+class DailyReportUpdateRequest(BaseModel):
+    """日报更新请求模型（符合Dify HTTP节点）"""
+    employee_id: int = Field(..., description="员工ID", ge=1)
+    report_date: str = Field(..., description="日报日期 (YYYY-MM-DD)", min_length=10, max_length=10)
+    content: Optional[str] = Field(default=None, description="今日工作内容（可选）", max_length=5000)
+    achievements: Optional[str] = Field(default=None, description="工作成果（可选）", max_length=2000)
+    plan_tomorrow: Optional[str] = Field(default=None, description="明日计划（可选）", max_length=2000)
+    problems: Optional[str] = Field(default=None, description="遇到的问题（可选）", max_length=2000)
+    status: Optional[str] = Field(default=None, description="日报状态（可选）", max_length=20)
+    department_id: Optional[int] = Field(default=None, description="部门ID（可选）")
+    department_name: Optional[str] = Field(default=None, description="部门名称（可选）", max_length=100)
+    
+    class Config:
+        """Pydantic模型配置"""
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "employee_id": 1001,
+                "name": "2025-03-26日报（已更新）",
+                "report_date": "2025-03-26",
+                "content": "完成接口开发并优化",
+                "achievements": "跑通日报提交和更新接口",
+                "plan_tomorrow": "优化权限控制",
+                "problems": "无",
+                "status": "已提交"
             }
         }
 
@@ -151,6 +174,62 @@ class EmailRequest(BaseModel):
     subject: str                 # 邮件标题
     content: str                 # 报告正文（Markdown）
     content_type: str = "text/markdown"  # 内容格式
+
+
+class DailyReportQueryRequest(BaseModel):
+    """日报查询请求模型（符合Dify HTTP节点）"""
+    employee_id: Optional[int] = Field(default=None, description="员工ID（可选，不传则查询所有）")
+    department_id: Optional[int] = Field(default=None, description="部门ID（可选）")
+    department_name: Optional[str] = Field(default=None, description="部门名称（可选）")
+    status: Optional[str] = Field(default=None, description="日报状态（可选，如：草稿、已提交、已审核）")
+    start_date: Optional[str] = Field(default=None, description="开始日期 (YYYY-MM-DD)")
+    end_date: Optional[str] = Field(default=None, description="结束日期 (YYYY-MM-DD)")
+    is_pushed: Optional[int] = Field(default=None, description="是否已推送（可选，0=未推送，1=已推送）")
+
+    class Config:
+        """Pydantic模型配置"""
+        json_schema_extra = {
+            "example": {
+                "employee_id": 1001,
+                "department_id": 1,
+                "department_name": "技术部",
+                "status": "已提交",
+                "start_date": "2025-03-01",
+                "end_date": "2025-03-31",
+                "is_pushed": 1
+            }
+        }
+
+
+class SQLExecuteRequest(BaseModel):
+    """SQL执行请求模型（符合Dify HTTP节点）"""
+    sql: str = Field(..., description="SQL查询语句（仅支持SELECT查询）", min_length=1)
+    
+    @field_validator('sql')
+    @classmethod
+    def validate_sql(cls, v: str) -> str:
+        """验证SQL语句是否合法"""
+        sql_upper = v.strip().upper()
+        
+        # 只允许SELECT查询，防止数据库被修改
+        if not sql_upper.startswith('SELECT'):
+            raise ValueError('仅支持SELECT查询，不允许使用其他SQL语句')
+        
+        # 检查危险关键字
+        dangerous_keywords = ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'CREATE', 'TRUNCATE', 'EXEC']
+        for keyword in dangerous_keywords:
+            if keyword in sql_upper:
+                raise ValueError(f'SQL语句包含危险关键字：{keyword}')
+        
+        return v.strip()
+    
+    class Config:
+        """Pydantic模型配置"""
+        json_schema_extra = {
+            "example": {
+                "sql": "SELECT * FROM employee WHERE role = '普通员工' LIMIT 10"
+            }
+        }
 
 
 class APIResponse(BaseModel):
